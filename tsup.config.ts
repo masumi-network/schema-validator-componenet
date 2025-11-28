@@ -12,3 +12,4 @@ export default defineConfig({
   splitting: false, // Simplifies initial setup, can enable if bundle grows
 });
 
+

@@ -1,0 +1,160 @@
+import React, { useState, useEffect } from 'react';
+import Editor from '@monaco-editor/react';
+import JobInputsFormRenderer from './JobInputsFormRenderer';
+import { validateSchemaWithZod } from '../lib/validation';
+import { cn } from './JobInputsFormRenderer';
+
+export interface SchemaPlaygroundProps {
+  initialSchema?: string;
+  examples?: Array<{ label: string; value: string }>;
+  className?: string;
+  onSchemaChange?: (schema: string, isValid: boolean) => void;
+}
+
+export default function SchemaPlayground({
+  initialSchema = '[]',
+  examples = [],
+  className,
+  onSchemaChange,
+}: SchemaPlaygroundProps) {
+  const [schemaInput, setSchemaInput] = useState(initialSchema);
+  const [selectedExample, setSelectedExample] = useState(examples.length > 0 ? examples[0].label : '');
+  const [formData, setFormData] = useState({});
+  
+  // Reset form data when schema changes
+  useEffect(() => {
+    setFormData({});
+  }, [schemaInput]);
+
+  // Use effect for initial example selection if provided and initialSchema is not set/matches
+  useEffect(() => {
+    if (examples.length > 0 && !selectedExample) {
+        // If current input matches an example, select it
+        const match = examples.find(e => e.value === schemaInput);
+        if (match) setSelectedExample(match.label);
+    }
+  }, [examples, schemaInput, selectedExample]);
+
+  const handleSelectExample = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedExample(val);
+    const found = examples.find((ex) => ex.label === val);
+    if (found) {
+      setSchemaInput(found.value);
+    }
+  };
+
+  const validationResult = validateSchemaWithZod(schemaInput);
+
+  useEffect(() => {
+    if (onSchemaChange) {
+        onSchemaChange(schemaInput, validationResult.valid);
+    }
+  }, [schemaInput, validationResult.valid, onSchemaChange]);
+
+  return (
+    <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-8 h-full", className)}>
+      {/* Left Column: Schema Editor */}
+      <div className="flex flex-col gap-4 h-full min-h-[500px]">
+        <h2 className="text-lg font-semibold text-gray-900">1. Schema Definition (JSON)</h2>
+        
+        <div className="flex-1 relative border rounded-lg overflow-hidden shadow-sm bg-white flex flex-col">
+          <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
+            <div className="flex items-center gap-2">
+             {examples.length > 0 && (
+                <>
+                 <span className="text-xs font-medium text-gray-700 whitespace-nowrap">Load Example:</span>
+                  <select
+                    className="border rounded px-2 py-1 text-xs bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[200px]"
+                    value={selectedExample}
+                    onChange={handleSelectExample}
+                  >
+                    {examples.map((ex) => (
+                      <option key={ex.label} value={ex.label}>
+                        {ex.label}
+                      </option>
+                    ))}
+                  </select>
+                </>
+             )}
+            </div>
+            <div className={`text-xs px-2 py-1 rounded-full font-medium ${validationResult.valid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+              {validationResult.valid ? 'Valid Schema' : 'Invalid Schema'}
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <Editor
+              height="100%"
+              defaultLanguage="json"
+              value={schemaInput}
+              onChange={(value) => {
+                setSchemaInput(value || '');
+                if (examples.length > 0) {
+                     // Check if still matches an example, otherwise clear selection
+                     const match = examples.find(e => e.value === (value || ''));
+                     if (match) {
+                         setSelectedExample(match.label);
+                     } else {
+                         setSelectedExample('');
+                     }
+                }
+              }}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                formatOnPaste: true,
+                automaticLayout: true,
+              }}
+            />
+          </div>
+          
+          {!validationResult.valid && (
+            <div className="border-t bg-red-50 p-4 text-sm max-h-40 overflow-y-auto z-10 relative">
+              <p className="font-bold text-red-800 mb-2">Validation Errors:</p>
+              <ul className="list-disc pl-5 space-y-1 text-red-700">
+                {validationResult.errors.map((err, i) => (
+                  <li key={i}>
+                    {err.line ? <span className="font-mono bg-red-100 px-1 rounded mr-1">line {err.line}</span> : null}
+                    {err.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Right Column: Preview */}
+      <div className="flex flex-col gap-4 h-full overflow-hidden min-h-[500px]">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">2. Form Preview</h2>
+        </div>
+        
+        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+          {validationResult.valid ? (
+            <>
+              <div className="flex-1 overflow-y-auto border rounded-lg shadow-sm bg-white p-1">
+                {/* Component Preview Wrapper */}
+                <JobInputsFormRenderer
+                  jobInputSchemas={validationResult.parsedSchemas || []}
+                  onFormDataChange={setFormData}
+                  className="h-full border-0 shadow-none" 
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 text-gray-400">
+              <div className="text-center">
+                <p className="text-lg font-medium">Preview Unavailable</p>
+                <p className="text-sm">Fix schema errors to see the form</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+

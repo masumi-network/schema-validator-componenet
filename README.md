@@ -33,7 +33,7 @@ Your application must define the standard `shadcn/ui` CSS variables (e.g., `--pr
 
 ## Usage
 
-### Component
+### Form Renderer Component
 
 Import `JobInputsFormRenderer` to render a form based on your schema definition.
 
@@ -45,19 +45,7 @@ const MyComponent = () => {
   const [formData, setFormData] = useState({});
 
   const schemas = [
-    {
-      id: "name",
-      type: "string",
-      name: "Full Name",
-      data: {
-        placeholder: "Enter your full name",
-        description: "Your complete name as it appears on official documents"
-      },
-      validations: [
-        { validation: "min", value: "2" }
-      ]
-    }
-    // ... more schema items
+    // ... your schema items
   ];
 
   return (
@@ -66,6 +54,25 @@ const MyComponent = () => {
       onFormDataChange={setFormData}
       className="my-custom-class"
     />
+  );
+};
+```
+
+### Schema Playground Component
+
+Use the `SchemaPlayground` component to embed a full schema editor and previewer in your application.
+
+```tsx
+import { SchemaPlayground } from '@masumi/schema-validator';
+
+const MyPage = () => {
+  return (
+    <div className="h-screen p-4">
+      <SchemaPlayground 
+        initialSchema="[]"
+        onSchemaChange={(schema, isValid) => console.log(schema, isValid)}
+      />
+    </div>
   );
 };
 ```
