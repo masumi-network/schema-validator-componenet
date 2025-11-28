@@ -1,6 +1,6 @@
 {
   "name": "masumi-schema-validator-component",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Job Input Schema Validator and Form Renderer for Masumi",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
