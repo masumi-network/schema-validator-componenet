@@ -9,6 +9,7 @@ export interface SchemaPlaygroundProps {
   examples?: Array<{ label: string; value: string }>;
   className?: string;
   onSchemaChange?: (schema: string, isValid: boolean) => void;
+  layoutBreakpoint?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
 export default function SchemaPlayground({
@@ -16,6 +17,7 @@ export default function SchemaPlayground({
   examples = [],
   className,
   onSchemaChange,
+  layoutBreakpoint = 'lg',
 }: SchemaPlaygroundProps) {
   const [schemaInput, setSchemaInput] = useState(initialSchema);
   const [selectedExample, setSelectedExample] = useState(examples.length > 0 ? examples[0].label : '');
@@ -52,8 +54,16 @@ export default function SchemaPlayground({
     }
   }, [schemaInput, validationResult.valid, onSchemaChange]);
 
+  const breakpointClasses = {
+    sm: 'sm:grid-cols-2',
+    md: 'md:grid-cols-2',
+    lg: 'lg:grid-cols-2',
+    xl: 'xl:grid-cols-2',
+    '2xl': '2xl:grid-cols-2',
+  };
+
   return (
-    <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-8 h-full", className)}>
+    <div className={cn("grid grid-cols-1 gap-8 h-full", breakpointClasses[layoutBreakpoint], className)}>
       {/* Left Column: Schema Editor */}
       <div className="flex flex-col gap-4 h-full min-h-[500px]">
         <h2 className="text-lg font-semibold text-gray-900">1. Schema Definition (JSON)</h2>
