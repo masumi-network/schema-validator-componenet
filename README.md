@@ -8,6 +8,29 @@ React component that allows you to dynamically validate input schema and see how
 npm install @masumi/schema-validator
 ```
 
+## Prerequisites
+
+This library is built with **Tailwind CSS** and relies on specific CSS variables (compatible with [shadcn/ui](https://ui.shadcn.com/)). 
+
+### 1. Tailwind Configuration
+
+You must add this package to your `tailwind.config.js` content array so Tailwind can scan for class names:
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  content: [
+    // ... your other paths
+    "./node_modules/@masumi/schema-validator/dist/**/*.{js,mjs}"
+  ],
+  // ...
+}
+```
+
+### 2. CSS Variables
+
+Your application must define the standard `shadcn/ui` CSS variables (e.g., `--primary`, `--background`, `--foreground`) in your global CSS file for the component to be styled correctly.
+
 ## Usage
 
 ### Component
