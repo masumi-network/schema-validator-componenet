@@ -1,0 +1,136 @@
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
+import Editor from '@monaco-editor/react';
+import JobInputsFormRenderer from '../components/JobInputsFormRenderer';
+import { validateSchemaWithZod } from '../lib/validation';
+import { EXAMPLES } from './examples';
+
+function App() {
+  const [schemaInput, setSchemaInput] = useState(EXAMPLES[0].value);
+  const [selectedExample, setSelectedExample] = useState(EXAMPLES[0].label);
+  const [formData, setFormData] = useState({});
+  
+  // Reset form data when schema changes
+  useEffect(() => {
+    setFormData({});
+  }, [schemaInput]);
+
+  const handleSelectExample = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedExample(val);
+    const found = EXAMPLES.find((ex) => ex.label === val);
+    if (found) {
+      setSchemaInput(found.value);
+    }
+  };
+
+  const validationResult = validateSchemaWithZod(schemaInput);
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Schema Validator Playground</h1>
+          <p className="text-gray-500">Test your input schemas and form rendering</p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-180px)]">
+          {/* Left Column: Schema Editor */}
+          <div className="flex flex-col gap-4 h-full">
+            <h2 className="text-lg font-semibold text-gray-900">1. Schema Definition (JSON)</h2>
+            
+            <div className="flex-1 relative border rounded-lg overflow-hidden shadow-sm bg-white flex flex-col">
+              <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-700 whitespace-nowrap">Load Example:</span>
+                  <select
+                    className="border rounded px-2 py-1 text-xs bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[200px]"
+                    value={selectedExample}
+                    onChange={handleSelectExample}
+                  >
+                    {EXAMPLES.map((ex) => (
+                      <option key={ex.label} value={ex.label}>
+                        {ex.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={`text-xs px-2 py-1 rounded-full font-medium ${validationResult.valid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {validationResult.valid ? 'Valid Schema' : 'Invalid Schema'}
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <Editor
+                  height="100%"
+                  defaultLanguage="json"
+                  value={schemaInput}
+                  onChange={(value) => {
+                    setSchemaInput(value || '');
+                    setSelectedExample(''); // Clear selection on manual edit
+                  }}
+                  options={{
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 14,
+                    formatOnPaste: true,
+                    automaticLayout: true,
+                  }}
+                />
+              </div>
+              
+              {!validationResult.valid && (
+                <div className="border-t bg-red-50 p-4 text-sm max-h-40 overflow-y-auto z-10 relative">
+                  <p className="font-bold text-red-800 mb-2">Validation Errors:</p>
+                  <ul className="list-disc pl-5 space-y-1 text-red-700">
+                    {validationResult.errors.map((err, i) => (
+                      <li key={i}>
+                        {err.line ? <span className="font-mono bg-red-100 px-1 rounded mr-1">line {err.line}</span> : null}
+                        {err.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Preview */}
+          <div className="flex flex-col gap-4 h-full overflow-hidden">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">2. Form Preview</h2>
+            </div>
+            
+            <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+              {validationResult.valid ? (
+                <>
+                  <div className="flex-1 overflow-y-auto border rounded-lg shadow-sm bg-white p-1">
+                    {/* Component Preview Wrapper */}
+                    <JobInputsFormRenderer
+                      jobInputSchemas={validationResult.parsedSchemas || []}
+                      onFormDataChange={setFormData}
+                      className="h-full border-0 shadow-none" // Override default card styles for seamless integration
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 text-gray-400">
+                  <div className="text-center">
+                    <p className="text-lg font-medium">Preview Unavailable</p>
+                    <p className="text-sm">Fix schema errors to see the form</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

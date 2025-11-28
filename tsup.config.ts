@@ -1,0 +1,14 @@
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: ['src/index.ts'],
+  format: ['cjs', 'esm'],
+  dts: true,
+  sourcemap: true,
+  clean: true,
+  minify: false,
+  external: ['react', 'react-dom'],
+  treeshake: true,
+  splitting: false, // Simplifies initial setup, can enable if bundle grows
+});
+
