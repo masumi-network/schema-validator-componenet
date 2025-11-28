@@ -45,7 +45,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HT
 Checkbox.displayName = "Checkbox";
 
 
-interface JobInputRendererProps {
+export interface JobInputRendererProps {
   jobInputSchema: JobInputSchemaType;
   value: string | number | boolean | number[] | null;
   onChange: (value: string | number | boolean | number[] | null) => void;
