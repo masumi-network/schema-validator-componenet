@@ -53,7 +53,7 @@ export default function SchemaPlayground({
   }, [schemaInput, validationResult.valid, onSchemaChange]);
 
   return (
-    <div className={cn("grid grid-cols-2 gap-8 h-full", className)}>
+    <div className={cn("grid grid-cols-2 gap-4 h-full", className)}>
       {/* Left Column: Schema Editor */}
       <div className="flex flex-col gap-4 h-full min-h-[500px]">
         <h2 className="text-lg font-semibold text-gray-900">1. Schema Definition (JSON)</h2>
