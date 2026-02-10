@@ -16,12 +16,12 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
 const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'outline' | 'destructive' | 'secondary' | 'ghost' | 'link' }>(
   ({ className, variant = 'default', ...props }, ref) => {
     const variants = {
-      default: "bg-primary text-primary-foreground hover:bg-primary/90",
-      outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-      destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-      secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-      ghost: "hover:bg-accent hover:text-accent-foreground",
-      link: "text-primary underline-offset-4 hover:underline",
+      default: "bg-gray-900 dark:bg-gray-100 text-gray-100 dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200",
+      outline: "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700",
+      destructive: "bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-800",
+      secondary: "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600",
+      ghost: "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100",
+      link: "text-gray-900 dark:text-gray-100 underline-offset-4 hover:underline",
     };
     
     return (
@@ -40,7 +40,7 @@ const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HT
 Button.displayName = "Button";
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)} {...props} />
+  <div ref={ref} className={cn("rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm", className)} {...props} />
 ));
 Card.displayName = "Card";
 
@@ -60,7 +60,7 @@ const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
 CardContent.displayName = "CardContent";
 
 const Separator = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("shrink-0 bg-border h-[1px] w-full", className)} {...props} />
+  <div ref={ref} className={cn("shrink-0 bg-gray-200 dark:bg-gray-700 h-[1px] w-full", className)} {...props} />
 ));
 Separator.displayName = "Separator";
 
@@ -145,11 +145,11 @@ export default function JobInputsFormRenderer({
   }
 
   return (
-    <Card className={cn("bg-muted/20", className)}>
+    <Card className={cn("bg-gray-50/50 dark:bg-gray-800/50", className)}>
       <CardContent className="space-y-6 pt-6">
-        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
           {jobInputSchemas.map((schema, index) => (
-            <div key={schema.id}>
+            <div key={schema.id} className="space-y-0">
               <JobInputRenderer
                 jobInputSchema={schema}
                 value={formData[schema.id]}
@@ -157,13 +157,13 @@ export default function JobInputsFormRenderer({
                 disabled={disabled}
               />
               {index < jobInputSchemas.length - 1 && (
-                <Separator className="my-4" />
+                <Separator className="mt-6" />
               )}
             </div>
           ))}
         </form>
 
-        <div className="flex justify-between items-center pt-4">
+        <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
           <Button
             type="button"
             variant="outline"
@@ -173,7 +173,7 @@ export default function JobInputsFormRenderer({
             Clear Form
           </Button>
 
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             {Object.keys(formData).length} field
             {Object.keys(formData).length !== 1 ? 's' : ''}
           </div>
