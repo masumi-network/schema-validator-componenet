@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
+import React, { useState, useEffect, useRef } from 'react';
+import Editor, { Monaco } from '@monaco-editor/react';
+import type { editor } from 'monaco-editor';
 import JobInputsFormRenderer from './JobInputsFormRenderer';
 import { validateSchemaWithZod } from '../lib/validation';
 import { cn } from './JobInputsFormRenderer';
@@ -77,6 +78,8 @@ export default function SchemaPlayground({
 
   // Detect dark mode for Monaco Editor
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
 
   useEffect(() => {
     // Check initial theme
@@ -106,6 +109,13 @@ export default function SchemaPlayground({
       mediaQuery.removeEventListener('change', handleChange);
     };
   }, []);
+
+  // Update Monaco Editor theme when dark mode changes
+  useEffect(() => {
+    if (monacoRef.current) {
+      monacoRef.current.editor.setTheme(isDarkMode ? 'vs-dark' : 'vs-light');
+    }
+  }, [isDarkMode]);
 
   return (
     <div className={cn("grid grid-cols-2 gap-4 h-full", className)}>
@@ -185,6 +195,12 @@ export default function SchemaPlayground({
                 defaultLanguage="json"
                 theme={isDarkMode ? 'vs-dark' : 'vs-light'}
                 value={schemaInput}
+                onMount={(editor, monaco) => {
+                  editorRef.current = editor;
+                  monacoRef.current = monaco;
+                  // Set initial theme
+                  monaco.editor.setTheme(isDarkMode ? 'vs-dark' : 'vs-light');
+                }}
                 onChange={(value) => {
                   setSchemaInput(value || '');
                   if (examples.length > 0) {

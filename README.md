@@ -290,6 +290,20 @@ src/
 
 This component uses Tailwind CSS for styling. Make sure Tailwind CSS is configured in your project. The component includes its own minimal UI components but relies on Tailwind for styling.
 
+### Tailwind Configuration
+
+**Important**: To ensure all styles (including dark mode variants) are properly generated, you must configure Tailwind to scan the component's TypeScript/JavaScript files. Add the following to your CSS file (e.g., `global.css` or `app.css`):
+
+```css
+@import 'tailwindcss';
+
+/* Ensure Tailwind scans external schema validator classes (including dark variants) */
+@source "../node_modules/masumi-schema-validator-component/dist/index.mjs";
+@source "../node_modules/masumi-schema-validator-component/dist/index.js";
+```
+
+This ensures that Tailwind generates all necessary utility classes used by the component, including dark mode variants like `dark:bg-red-900/30`, `dark:text-red-200`, etc.
+
 ## TypeScript
 
 Full TypeScript support is included. All components and functions are fully typed:
