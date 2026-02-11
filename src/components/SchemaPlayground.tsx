@@ -13,6 +13,14 @@ export interface SchemaPlaygroundProps {
   examples?: Array<{ label: string; value: string }>;
   className?: string;
   onSchemaChange?: (schema: string, isValid: boolean) => void;
+  /**
+   * Theme mode for the component. 
+   * - 'light': Force light theme
+   * - 'dark': Force dark theme
+   * - 'auto': Automatically detect from DOM (checks for .dark class on documentElement)
+   * @default 'auto'
+   */
+  theme?: 'light' | 'dark' | 'auto';
 }
 
 export default function SchemaPlayground({
@@ -20,6 +28,7 @@ export default function SchemaPlayground({
   examples = [],
   className,
   onSchemaChange,
+  theme = 'auto',
 }: SchemaPlaygroundProps) {
   const [schemaInput, setSchemaInput] = useState(initialSchema);
   const [selectedExample, setSelectedExample] = useState(examples.length > 0 ? examples[0].label : '');
@@ -76,39 +85,49 @@ export default function SchemaPlayground({
     }
   }, [schemaInput, validationResult.valid, onSchemaChange]);
 
-  // Detect dark mode for Monaco Editor
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // Theme management - single source of truth from parent app
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
+  
+  // State to track DOM theme changes (only used when theme='auto')
+  const [domTheme, setDomTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    }
+    return 'light';
+  });
 
+  // Determine if dark mode based on theme prop
+  const isDarkMode = React.useMemo(() => {
+    if (theme === 'dark') return true;
+    if (theme === 'light') return false;
+    // 'auto' mode: use DOM theme state (respects app's theme management)
+    return domTheme === 'dark';
+  }, [theme, domTheme]);
+
+  // Watch for theme changes when in 'auto' mode
   useEffect(() => {
-    // Check initial theme
+    if (theme !== 'auto') return;
+
     const checkTheme = () => {
-      const isDark = 
-        document.documentElement.classList.contains('dark') ||
-        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      setIsDarkMode(isDark);
+      const isDark = document.documentElement.classList.contains('dark');
+      setDomTheme(isDark ? 'dark' : 'light');
     };
 
+    // Check initial theme
     checkTheme();
 
-    // Watch for theme changes
+    // Watch for theme changes on the document element
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
     });
 
-    // Watch for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => checkTheme();
-    mediaQuery.addEventListener('change', handleChange);
-
     return () => {
       observer.disconnect();
-      mediaQuery.removeEventListener('change', handleChange);
     };
-  }, []);
+  }, [theme]);
 
   // Update Monaco Editor theme when dark mode changes
   useEffect(() => {
