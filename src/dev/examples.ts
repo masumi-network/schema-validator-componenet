@@ -4,7 +4,7 @@ export const EXAMPLES = [
     value: `[
   {
     "id": "name",
-    "type": "string",
+    "type": "text",
     "name": "Full Name",
     "data": {
       "placeholder": "Enter your full name",
@@ -17,7 +17,7 @@ export const EXAMPLES = [
   },
   {
     "id": "email",
-    "type": "string",
+    "type": "email",
     "name": "Email Address",
     "data": {
       "placeholder": "your.email@example.com",
@@ -64,10 +64,26 @@ export const EXAMPLES = [
 ]`,
   },
   {
-    label: 'String Input',
+    label: 'Text Input',
+    value: `{
+  "id": "text-input",
+  "type": "text",
+  "name": "Text Field",
+  "data": {
+    "placeholder": "Enter text",
+    "description": "User text input"
+  },
+  "validations": [
+    { "validation": "min", "value": "5" },
+    { "validation": "max", "value": "55" }
+  ]
+}`,
+  },
+  {
+    label: 'Email Input',
     value: `{
   "id": "email-input",
-  "type": "string",
+  "type": "email",
   "name": "Email",
   "data": {
     "placeholder": "Enter your email",
@@ -130,11 +146,14 @@ export const EXAMPLES = [
   "type": "file",
   "name": "Document Upload",
   "data": {
-    "accept": ".pdf,.doc,.docx",
-    "maxSize": "10485760",
     "description": "PDF or Word documents only (max 10MB)",
-    "outputFormat": "base64"
-  }
+    "outputFormat": "url"
+  },
+  "validations": [
+    { "validation": "accept", "value": "image/*,.pdf,.doc,.docx" },
+    { "validation": "min", "value": "1" },
+    { "validation": "max", "value": "1" }
+  ]
 }`,
   },
   {
@@ -143,7 +162,7 @@ export const EXAMPLES = [
   "input_data": [
     {
       "id": "project-name",
-      "type": "string",
+      "type": "text",
       "name": "Project Name",
       "data": {
         "placeholder": "Enter project name",
@@ -156,13 +175,14 @@ export const EXAMPLES = [
     },
     {
       "id": "description",
-      "type": "string", 
+      "type": "text", 
       "name": "Description",
       "data": {
         "placeholder": "Describe your project",
         "description": "Brief description of the project (optional)"
       },
       "validations": [
+        { "validation": "optional" },
         { "validation": "max", "value": "500" }
       ]
     },
@@ -172,8 +192,11 @@ export const EXAMPLES = [
       "name": "Project Document",
       "data": {
         "description": "Upload project documentation (PDF/Word, max 4.5MB)",
-        "outputFormat": "string"
-      }
+        "outputFormat": "url"
+      },
+      "validations": [
+        { "validation": "accept", "value": ".pdf,.doc,.docx" }
+      ]
     },
     {
       "id": "priority",
