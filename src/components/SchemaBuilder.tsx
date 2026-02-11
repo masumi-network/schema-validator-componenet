@@ -607,7 +607,7 @@ function FieldCard({ field, index, totalFields, onUpdate, onRemove, onMoveUp, on
                         className="flex items-center gap-2"
                       >
                         <select
-                          className="text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-1.5 py-1"
+                          className="text-xs rounded-md border border-gray-300 dark:border-gray-600 !bg-white dark:!bg-gray-700 text-gray-900 dark:text-gray-100 px-1.5 py-1"
                           value={currentType}
                           onChange={(e) =>
                             handleUpdateValidation(idx, {
@@ -632,7 +632,7 @@ function FieldCard({ field, index, totalFields, onUpdate, onRemove, onMoveUp, on
 
                         {canUseFormat && allowedFormats.length > 0 ? (
                           <select
-                            className="flex-1 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-1.5 py-1"
+                            className="flex-1 text-xs rounded-md border border-gray-300 dark:border-gray-600 !bg-white dark:!bg-gray-700 text-gray-900 dark:text-gray-100 px-1.5 py-1"
                             value={String(rule.value ?? allowedFormats[0])}
                             onChange={(e) =>
                               handleUpdateValidation(idx, {
@@ -744,7 +744,9 @@ function AddFieldDropdown({ onAdd }: { onAdd: (type: ValidJobInputTypes) => void
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
+        <div
+          className="absolute top-full left-0 right-0 mt-2 !bg-white dark:!bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto"
+        >
           {FIELD_TYPE_CATEGORIES.map((category) => {
             const typesInCategory = FIELD_TYPES.filter((f) => f.category === category);
             if (typesInCategory.length === 0) return null;

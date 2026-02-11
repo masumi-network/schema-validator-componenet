@@ -215,7 +215,9 @@ function OptionSelect(props: OptionSelectProps) {
       </button>
 
       {open && (
-        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg">
+        <div
+          className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 dark:border-gray-700 !bg-white dark:!bg-gray-900 shadow-lg"
+        >
           {options.length === 0 ? (
             <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
               No options available
