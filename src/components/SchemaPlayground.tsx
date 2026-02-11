@@ -3,6 +3,9 @@ import Editor from '@monaco-editor/react';
 import JobInputsFormRenderer from './JobInputsFormRenderer';
 import { validateSchemaWithZod } from '../lib/validation';
 import { cn } from './JobInputsFormRenderer';
+import SchemaBuilder from './SchemaBuilder';
+
+type EditorMode = 'json' | 'builder';
 
 export interface SchemaPlaygroundProps {
   initialSchema?: string;
@@ -20,6 +23,7 @@ export default function SchemaPlayground({
   const [schemaInput, setSchemaInput] = useState(initialSchema);
   const [selectedExample, setSelectedExample] = useState(examples.length > 0 ? examples[0].label : '');
   const [, setFormData] = useState({});
+  const [editorMode, setEditorMode] = useState<EditorMode>('json');
   
   // Reset form data when schema changes
   useEffect(() => {
@@ -115,14 +119,48 @@ export default function SchemaPlayground({
     <div className={cn("grid grid-cols-2 gap-4 h-full", className)}>
       {/* Left Column: Schema Editor */}
       <div className="flex flex-col gap-4 h-full min-h-[500px]">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">1. Schema Definition (JSON)</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">1. Schema Definition</h2>
+          
+          {/* Mode toggle */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+            <button
+              type="button"
+              onClick={() => setEditorMode('json')}
+              className={cn(
+                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                editorMode === 'json'
+                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              )}
+            >
+              JSON Editor
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorMode('builder')}
+              className={cn(
+                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                editorMode === 'builder'
+                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              )}
+            >
+              Visual Builder
+            </button>
+          </div>
+        </div>
         
-        <div className="flex-1 relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm bg-white dark:bg-gray-800 flex flex-col">
+        <div className={cn(
+          "flex-1 relative border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800 flex flex-col",
+          editorMode === 'json' ? "overflow-hidden" : "overflow-visible"
+        )}>
+          {/* Toolbar */}
           <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <div className="flex items-center gap-2">
-             {examples.length > 0 && (
+              {editorMode === 'json' && examples.length > 0 && (
                 <>
-                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Load Example:</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Load Example:</span>
                   <select
                     className="border border-gray-200 dark:border-gray-700 rounded px-2 py-1 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[200px]"
                     value={selectedExample}
@@ -135,40 +173,56 @@ export default function SchemaPlayground({
                     ))}
                   </select>
                 </>
-             )}
+              )}
+              {editorMode === 'builder' && (
+                <span className="text-xs text-gray-500 dark:text-gray-400">Add and configure fields visually</span>
+              )}
             </div>
             <div className={`text-xs px-2 py-1 rounded-full font-medium ${validationResult.valid ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'}`}>
               {validationResult.valid ? 'Valid Schema' : 'Invalid Schema'}
             </div>
           </div>
 
-          <div className="flex-1">
-            <Editor
-              height="100%"
-              defaultLanguage="json"
-              theme={isDarkMode ? 'vs-dark' : 'vs-light'}
-              value={schemaInput}
-              onChange={(value) => {
-                setSchemaInput(value || '');
-                if (examples.length > 0) {
-                     // Check if still matches an example, otherwise clear selection
-                     const match = examples.find(e => e.value === (value || ''));
-                     if (match) {
-                         setSelectedExample(match.label);
-                     } else {
-                         setSelectedExample('');
-                     }
-                }
-              }}
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                formatOnPaste: true,
-                automaticLayout: true,
-              }}
-            />
-          </div>
+          {/* Editor / Builder content */}
+          {editorMode === 'json' ? (
+            <div className="flex-1">
+              <Editor
+                height="100%"
+                defaultLanguage="json"
+                theme={isDarkMode ? 'vs-dark' : 'vs-light'}
+                value={schemaInput}
+                onChange={(value) => {
+                  setSchemaInput(value || '');
+                  if (examples.length > 0) {
+                    const match = examples.find(e => e.value === (value || ''));
+                    if (match) {
+                      setSelectedExample(match.label);
+                    } else {
+                      setSelectedExample('');
+                    }
+                  }
+                }}
+                options={{
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 14,
+                  formatOnPaste: true,
+                  automaticLayout: true,
+                }}
+              />
+            </div>
+          ) : (
+            <div className="flex-1 overflow-visible p-4">
+              <SchemaBuilder
+                schemaInput={schemaInput}
+                onSchemaChange={(newSchema) => {
+                  setSchemaInput(newSchema);
+                  setSelectedExample('');
+                }}
+                className="h-full"
+              />
+            </div>
+          )}
           
           {!validationResult.valid && (
             <div className="border-t-2 border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-4 text-sm max-h-60 overflow-y-auto z-10 relative">
