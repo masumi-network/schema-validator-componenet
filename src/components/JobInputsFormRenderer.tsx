@@ -136,7 +136,7 @@ export default function JobInputsFormRenderer({
     return (
       <Card className={className}>
         <CardContent className="pt-6">
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
             No input fields defined in the schema.
           </p>
         </CardContent>
