@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { JobInputSchemaType, ValidJobInputTypes } from '../lib/job-input-schema';
 import { Input, Textarea, Checkbox } from './ui-components';
 

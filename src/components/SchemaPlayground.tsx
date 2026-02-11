@@ -52,14 +52,6 @@ export default function SchemaPlayground({
   const validationResult = React.useMemo(() => {
     try {
       const result = validateSchemaWithZod(schemaInput);
-      console.log('🔍 Validation result:', {
-        valid: result.valid,
-        errorCount: result.errors?.length || 0,
-        errors: result.errors,
-        errorsArray: Array.isArray(result.errors),
-        schemaInputLength: schemaInput.length
-      });
-      
       // Ensure errors is always an array
       if (!Array.isArray(result.errors)) {
         console.warn('⚠️ Errors is not an array!', result.errors);

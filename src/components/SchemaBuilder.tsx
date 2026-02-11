@@ -1,5 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ValidJobInputTypes } from '../lib/job-input-schema';
+import { useState, useRef, useEffect } from 'react';
+import {
+  ValidJobInputTypes,
+  ValidJobInputValidationTypes,
+  ValidJobInputFormatValues,
+} from '../lib/job-input-schema';
 import { cn } from './JobInputsFormRenderer';
 
 // ── Field type metadata ──────────────────────────────────────────────
@@ -43,6 +47,143 @@ const FIELD_TYPES: FieldTypeInfo[] = [
   { type: ValidJobInputTypes.HIDDEN, label: 'Hidden Field', category: 'Other', icon: '👁' },
   { type: ValidJobInputTypes.NONE, label: 'None (Display Only)', category: 'Other', icon: '—' },
 ];
+
+// ── Validation metadata (from MIP-003 Attachment 01) ───────────────────
+
+type ValidationType = ValidJobInputValidationTypes;
+type FormatValue = ValidJobInputFormatValues;
+
+interface ValidationRule {
+  validation: ValidationType | string;
+  value?: string | boolean;
+}
+
+const VALIDATIONS_BY_TYPE: Record<ValidJobInputTypes, ValidationType[]> = {
+  [ValidJobInputTypes.TEXT]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.FORMAT,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.TEXTAREA]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.FORMAT,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.NUMBER]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.FORMAT,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.BOOLEAN]: [ValidJobInputValidationTypes.OPTIONAL],
+  [ValidJobInputTypes.OPTION]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.FILE]: [
+    ValidJobInputValidationTypes.ACCEPT,
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.NONE]: [],
+  [ValidJobInputTypes.EMAIL]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.FORMAT,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.PASSWORD]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.TEL]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.FORMAT,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.URL]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.FORMAT,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.DATE]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.DATETIME_LOCAL]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.TIME]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.MONTH]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.WEEK]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.COLOR]: [ValidJobInputValidationTypes.OPTIONAL],
+  [ValidJobInputTypes.RANGE]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.HIDDEN]: [],
+  [ValidJobInputTypes.SEARCH]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.FORMAT,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.CHECKBOX]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+  [ValidJobInputTypes.RADIO]: [
+    ValidJobInputValidationTypes.MIN,
+    ValidJobInputValidationTypes.MAX,
+    ValidJobInputValidationTypes.OPTIONAL,
+  ],
+};
+
+const FORMAT_VALUES_BY_TYPE: Partial<Record<ValidJobInputTypes, FormatValue[]>> = {
+  [ValidJobInputTypes.TEXT]: [
+    ValidJobInputFormatValues.URL,
+    ValidJobInputFormatValues.EMAIL,
+    ValidJobInputFormatValues.NON_EMPTY,
+  ],
+  [ValidJobInputTypes.TEXTAREA]: [ValidJobInputFormatValues.NON_EMPTY],
+  [ValidJobInputTypes.NUMBER]: [ValidJobInputFormatValues.INTEGER],
+  [ValidJobInputTypes.EMAIL]: [ValidJobInputFormatValues.EMAIL],
+  [ValidJobInputTypes.URL]: [ValidJobInputFormatValues.URL],
+  [ValidJobInputTypes.TEL]: [ValidJobInputFormatValues.TEL_PATTERN],
+  [ValidJobInputTypes.SEARCH]: [ValidJobInputFormatValues.NON_EMPTY],
+};
+
+const formatLabel: Record<FormatValue, string> = {
+  [ValidJobInputFormatValues.URL]: 'URL',
+  [ValidJobInputFormatValues.EMAIL]: 'Email',
+  [ValidJobInputFormatValues.INTEGER]: 'Integer',
+  [ValidJobInputFormatValues.NON_EMPTY]: 'Non-empty',
+  [ValidJobInputFormatValues.TEL_PATTERN]: 'Telephone pattern',
+};
 
 // ── Default field templates ──────────────────────────────────────────
 
@@ -197,6 +338,15 @@ function FieldCard({ field, index, totalFields, onUpdate, onRemove, onMoveUp, on
   const description = (data.description as string) ?? '';
   const placeholder = (data.placeholder as string) ?? undefined;
   const values = (data.values as string[]) ?? undefined;
+  const validations = (field.validations as ValidationRule[] | undefined) ?? [];
+
+  const typedFieldType = (fieldType as ValidJobInputTypes) || ValidJobInputTypes.TEXT;
+  const availableValidations = VALIDATIONS_BY_TYPE[typedFieldType] ?? [];
+  const formatOptions = FORMAT_VALUES_BY_TYPE[typedFieldType];
+
+  const hasOptionalValidation = validations.some(
+    (v) => v.validation === ValidJobInputValidationTypes.OPTIONAL,
+  );
 
   const updateField = (updates: Record<string, unknown>) => {
     onUpdate(index, { ...field, ...updates });
@@ -204,6 +354,59 @@ function FieldCard({ field, index, totalFields, onUpdate, onRemove, onMoveUp, on
 
   const updateData = (dataUpdates: Record<string, unknown>) => {
     onUpdate(index, { ...field, data: { ...data, ...dataUpdates } });
+  };
+
+  const updateValidations = (next: ValidationRule[]) => {
+    if (next.length === 0) {
+      // Remove validations key entirely when empty
+      const { validations: _removed, ...rest } = field as any;
+      onUpdate(index, rest);
+    } else {
+      onUpdate(index, { ...field, validations: next });
+    }
+  };
+
+  const handleToggleOptional = () => {
+    if (!availableValidations.includes(ValidJobInputValidationTypes.OPTIONAL)) return;
+    if (hasOptionalValidation) {
+      updateValidations(
+        validations.filter(
+          (v) => v.validation !== ValidJobInputValidationTypes.OPTIONAL,
+        ),
+      );
+    } else {
+      updateValidations([
+        ...validations,
+        { validation: ValidJobInputValidationTypes.OPTIONAL, value: 'true' },
+      ]);
+    }
+  };
+
+  const handleAddValidation = () => {
+    const nonOptionalValidations = availableValidations.filter(
+      (v) => v !== ValidJobInputValidationTypes.OPTIONAL,
+    );
+    if (nonOptionalValidations.length === 0) return;
+
+    const newType = nonOptionalValidations[0];
+    let defaultValue: string | boolean = '';
+
+    if (newType === ValidJobInputValidationTypes.FORMAT) {
+      const allowedFormats = formatOptions ?? [];
+      defaultValue = allowedFormats[0] ?? ValidJobInputFormatValues.NON_EMPTY;
+    }
+
+    updateValidations([...validations, { validation: newType, value: defaultValue }]);
+  };
+
+  const handleUpdateValidation = (idx: number, rule: Partial<ValidationRule>) => {
+    const next = validations.map((v, i) => (i === idx ? { ...v, ...rule } : v));
+    updateValidations(next);
+  };
+
+  const handleRemoveValidation = (idx: number) => {
+    const next = validations.filter((_, i) => i !== idx);
+    updateValidations(next);
   };
 
   return (
@@ -333,6 +536,156 @@ function FieldCard({ field, index, totalFields, onUpdate, onRemove, onMoveUp, on
                   updateData({ values: newValues.length > 0 ? newValues : ['Option 1'] });
                 }}
               />
+            </div>
+          )}
+
+          {availableValidations.length > 0 && (
+            <div className="border-t border-dashed border-gray-200 dark:border-gray-700 pt-3 mt-1 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  Validations
+                </span>
+                <div className="flex items-center gap-2">
+                  {availableValidations.includes(
+                    ValidJobInputValidationTypes.OPTIONAL,
+                  ) && (
+                    <button
+                      type="button"
+                      onClick={handleToggleOptional}
+                      className={cn(
+                        'text-[11px] px-2 py-1 rounded-full border transition-colors',
+                        hasOptionalValidation
+                          ? 'border-green-500 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30'
+                          : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-green-500 hover:text-green-600',
+                      )}
+                    >
+                      {hasOptionalValidation ? 'Optional' : 'Required'}
+                    </button>
+                  )}
+                  {availableValidations.some(
+                    (v) => v !== ValidJobInputValidationTypes.OPTIONAL,
+                  ) && (
+                    <button
+                      type="button"
+                      onClick={handleAddValidation}
+                      className="text-[11px] px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                    >
+                      + Add rule
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {validations.filter(
+                (v) => v.validation !== ValidJobInputValidationTypes.OPTIONAL,
+              ).length > 0 && (
+                <div className="space-y-1.5">
+                  {validations.map((rule, idx) => {
+                    if (rule.validation === ValidJobInputValidationTypes.OPTIONAL) {
+                      return null;
+                    }
+
+                    const currentType = rule
+                      .validation as ValidJobInputValidationTypes;
+                    const typeOptions = availableValidations.filter(
+                      (v) => v !== ValidJobInputValidationTypes.OPTIONAL,
+                    );
+                    const canUseFormat =
+                      currentType === ValidJobInputValidationTypes.FORMAT;
+                    const allowedFormats = formatOptions ?? [];
+
+                    return (
+                      <div
+                        key={`${currentType}-${idx}`}
+                        className="flex items-center gap-2"
+                      >
+                        <select
+                          className="text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-1.5 py-1"
+                          value={currentType}
+                          onChange={(e) =>
+                            handleUpdateValidation(idx, {
+                              validation: e
+                                .target
+                                .value as ValidJobInputValidationTypes,
+                              value:
+                                e.target.value ===
+                                ValidJobInputValidationTypes.FORMAT
+                                  ? (allowedFormats[0] ??
+                                    ValidJobInputFormatValues.NON_EMPTY)
+                                  : '',
+                            })
+                          }
+                        >
+                          {typeOptions.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+
+                        {canUseFormat && allowedFormats.length > 0 ? (
+                          <select
+                            className="flex-1 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-1.5 py-1"
+                            value={String(rule.value ?? allowedFormats[0])}
+                            onChange={(e) =>
+                              handleUpdateValidation(idx, {
+                                value: e.target.value,
+                              })
+                            }
+                          >
+                            {allowedFormats.map((fv) => (
+                              <option key={fv} value={fv}>
+                                {formatLabel[fv]}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            className="flex-1 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-2 py-1"
+                            placeholder={
+                              currentType === ValidJobInputValidationTypes.MIN
+                                ? 'Minimum value/length'
+                                : currentType === ValidJobInputValidationTypes.MAX
+                                ? 'Maximum value/length'
+                                : currentType === ValidJobInputValidationTypes.ACCEPT
+                                ? 'e.g. image/*,.pdf'
+                                : 'Value'
+                            }
+                            value={String(rule.value ?? '')}
+                            onChange={(e) =>
+                              handleUpdateValidation(idx, {
+                                value: e.target.value,
+                              })
+                            }
+                          />
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveValidation(idx)}
+                          className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 p-1 rounded"
+                          title="Remove validation"
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
